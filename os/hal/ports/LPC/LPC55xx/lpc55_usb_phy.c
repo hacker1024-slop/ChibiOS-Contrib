@@ -31,10 +31,11 @@ enum {
     PLL_POWER = 1u << 12,
     PLL_ENABLE = 1u << 13,
     PLL_RESERVED_CLEAR = 1u << 16,
+    PLL_BIAS_POWER_SELECT = 1u << 19,
     PLL_BIAS_POWER_DOWN = 1u << 20,
     PLL_REGULATOR_ENABLE = 1u << 21,
     PLL_DIVIDER_MASK = 7u << 22,
-    PLL_DIVIDE_BY_20 = 3u << 22,
+    PLL_DIVIDE_BY_30 = 6u << 22,
     PLL_PREDIV = 1u << 30,
     PLL_LOCK = 1u << 31,
     PHY_POWER_SETTLE_NOPS = 100000u,
@@ -59,10 +60,10 @@ void lpc55_usb_phy_init(void) {
     USB_PORT_MODE = PORT_SW_PDCOM | PORT_DEVICE_ENABLE;
     USB_PHY_CTRL_CLEAR = PHY_RESET;
     USB_PHY_PLL_CLEAR = PLL_USB_CLOCK_ENABLE | PLL_POWER | PLL_ENABLE |
-                        PLL_BIAS_POWER_DOWN | PLL_RESERVED_CLEAR |
+                        PLL_BIAS_POWER_SELECT | PLL_BIAS_POWER_DOWN | PLL_RESERVED_CLEAR |
                         PLL_DIVIDER_MASK | PLL_PREDIV;
-    /* The board uses the divide-by-20 setting observed at stock handoff. */
-    USB_PHY_PLL_SET = PLL_DIVIDE_BY_20 | PLL_REGULATOR_ENABLE;
+    /* Stock 1.1.1 uses divide-by-30 with the board's 16 MHz reference. */
+    USB_PHY_PLL_SET = PLL_DIVIDE_BY_30 | PLL_REGULATOR_ENABLE;
     USB_PHY_PLL_SET = PLL_ENABLE | PLL_POWER;
 
     for (unsigned polls = PLL_LOCK_POLL_LIMIT; !(USB_PHY_PLL & PLL_LOCK); --polls) {
