@@ -1,4 +1,5 @@
 #include "hal.h"
+#include "lpc55_clock.h"
 
 #if OSAL_ST_MODE == OSAL_ST_MODE_PERIODIC
 #include "lpc55_systick.h"
@@ -29,9 +30,7 @@ void st_lld_init(void) {
 #ifndef LPC55_ST_IRQ_PRIORITY
 #define LPC55_ST_IRQ_PRIORITY 6
 #endif
-#define LPC55_CTIMER2_CLOCK 96000000u
-#define SYSCON_CTIMER2_CLKSEL (*(volatile uint32_t *)UINT32_C(0x40000274))
-#define SYSCON_AHBCLKCTRLSET1 (*(volatile uint32_t *)UINT32_C(0x40000224))
+#define SYSCON_CTIMER2_CLKSEL LPC55_SYSCON(0x274u)
 
 #define CTIMER2_REG(offset) (*(volatile uint32_t *)(UINT32_C(0x40028000) + (offset)))
 #define CTIMER_IR CTIMER2_REG(0x00)
@@ -51,7 +50,7 @@ enum {
     CTIMER_MATCH1_INTERRUPT = 1u << 3,
 };
 
-_Static_assert(LPC55_CTIMER2_CLOCK % OSAL_ST_FREQUENCY == 0, "nonintegral system tick");
+_Static_assert(LPC55_FRO96_HZ % OSAL_ST_FREQUENCY == 0, "nonintegral system tick");
 
 OSAL_IRQ_HANDLER(VectorD0) {
     OSAL_IRQ_PROLOGUE();
@@ -66,10 +65,10 @@ OSAL_IRQ_HANDLER(VectorD0) {
 
 void st_lld_init(void) {
     SYSCON_CTIMER2_CLKSEL = CTIMER_CLOCK_FRO96;
-    SYSCON_AHBCLKCTRLSET1 = CTIMER2_CLOCK_GATE;
+    LPC55_AHBCLKCTRLSET(1) = CTIMER2_CLOCK_GATE;
     CTIMER_TCR = CTIMER_RESET;
     CTIMER_CTCR = 0;
-    CTIMER_PR = LPC55_CTIMER2_CLOCK / OSAL_ST_FREQUENCY - 1u;
+    CTIMER_PR = LPC55_FRO96_HZ / OSAL_ST_FREQUENCY - 1u;
     CTIMER_MCR = 0;
     CTIMER_IR = CTIMER_MATCH1_FLAG;
     CTIMER_TCR = CTIMER_ENABLE;

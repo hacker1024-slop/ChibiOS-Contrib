@@ -1,8 +1,10 @@
 #include "hal.h"
+#include "lpc55_clock.h"
 
 #if HAL_USE_I2C == TRUE
 
 /* LPC5528 Flexcomm 4 register layout. CMSIS core headers have no I2C fields. */
+#define FLEXCOMM4_CLOCK_SELECT LPC55_SYSCON(0x2c0u)
 #define FLEXCOMM4_BASE UINT32_C(0x4008a000)
 #define FLEXCOMM4(offset) (*(volatile uint32_t *)(FLEXCOMM4_BASE + (offset)))
 #define I2C_CFG FLEXCOMM4(0x800)
@@ -14,6 +16,8 @@
 #define FLEXCOMM_PSELID FLEXCOMM4(0xff8)
 
 enum {
+    FLEXCOMM4_GATE_RESET = 1u << 15,
+    FLEXCOMM_CLOCK_FRO96 = 3,
     FLEXCOMM_SELECT_I2C = 3,
     CONFIG_MASTER_ENABLE = 1u << 0,
     MASTER_STATE_SHIFT = 1,
@@ -53,8 +57,12 @@ msg_t i2c_lld_start(I2CDriver *i2cp) {
     }
     /* Use the same high/low counts in the divider and timing fields.
        The longer low phase meets the Fast-mode minimum low time at 400 kHz. */
+    LPC55_AHBCLKCTRLSET(1) = FLEXCOMM4_GATE_RESET;
+    FLEXCOMM4_CLOCK_SELECT = FLEXCOMM_CLOCK_FRO96;
+    LPC55_PRESETCTRLSET(1) = FLEXCOMM4_GATE_RESET;
+    LPC55_PRESETCTRLCLR(1) = FLEXCOMM4_GATE_RESET;
     FLEXCOMM_PSELID = FLEXCOMM_SELECT_I2C;
-    I2C_CLKDIV = LPC55_CORE_CLOCK / ((MASTER_SCL_LOW_CLOCKS + MASTER_SCL_HIGH_CLOCKS) * speed) - 1u;
+    I2C_CLKDIV = LPC55_FRO96_HZ / ((MASTER_SCL_LOW_CLOCKS + MASTER_SCL_HIGH_CLOCKS) * speed) - 1u;
     I2C_MSTTIME = ((MASTER_SCL_HIGH_CLOCKS - MASTER_SCL_ENCODING_OFFSET) << MASTER_SCL_HIGH_SHIFT) |
                   (MASTER_SCL_LOW_CLOCKS - MASTER_SCL_ENCODING_OFFSET);
     I2C_STAT = MASTER_ARBITRATION_LOST | MASTER_START_STOP_ERROR;

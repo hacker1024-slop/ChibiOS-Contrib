@@ -4,7 +4,7 @@
 #include "cmparams.h"
 #include "nvic.h"
 
-/* The board supplies the core clock after the SRAM bootloader handoff. */
+/* The LPC5528 HAL selects the 96 MHz FRO for the system clock. */
 #ifndef LPC55_CORE_CLOCK
 #define LPC55_CORE_CLOCK 96000000u
 #endif
@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 void hal_lld_init(void);
+void lpc55_reset_interrupt_state(void);
 #ifdef __cplusplus
 }
 #endif

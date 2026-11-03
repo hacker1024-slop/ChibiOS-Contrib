@@ -6,15 +6,14 @@
 enum {
     FLASH_COMMAND = 0, FLASH_START = 0x10, FLASH_STOP = 0x14,
     FLASH_DATA = 0x80, FLASH_STATUS = 0xfe0, FLASH_CLEAR = 0xfe8,
-    FLASH_READ = 3, FLASH_ERASE = 4, FLASH_LOAD = 8, FLASH_PROGRAM = 12,
-    FLASH_DONE = 4, FLASH_STATUS_MASK = 15,
+    FLASH_SET_READ_MODE = 2, FLASH_READ = 3, FLASH_ERASE = 4, FLASH_LOAD = 8, FLASH_PROGRAM = 12,
+    FLASH_DONE = 4, FLASH_STATUS_MASK = 15, FLASH_CLEAR_ALL_STATUS = 31,
+    FLASH_READ_TIMING_MASK = 0xf,
     WORD_SIZE = 16,
 };
 
-static bool command(unsigned opcode, unsigned address, unsigned stop) {
-    FLASH_REG(FLASH_CLEAR) = FLASH_STATUS_MASK;
-    FLASH_REG(FLASH_START) = address / WORD_SIZE;
-    FLASH_REG(FLASH_STOP) = stop / WORD_SIZE;
+static bool execute_command(unsigned opcode) {
+    FLASH_REG(FLASH_CLEAR) = FLASH_CLEAR_ALL_STATUS;
     FLASH_REG(FLASH_COMMAND) = opcode;
     for (unsigned poll = 0; poll < 100000; ++poll) {
         unsigned status = FLASH_REG(FLASH_STATUS) & FLASH_STATUS_MASK;
@@ -23,6 +22,18 @@ static bool command(unsigned opcode, unsigned address, unsigned stop) {
         }
     }
     return false;
+}
+
+static bool command(unsigned opcode, unsigned address, unsigned stop) {
+    FLASH_REG(FLASH_START) = address / WORD_SIZE;
+    FLASH_REG(FLASH_STOP) = stop / WORD_SIZE;
+    return execute_command(opcode);
+}
+
+bool lpc_flash_set_read_timing(unsigned timing) {
+    FLASH_REG(FLASH_DATA) = (FLASH_REG(FLASH_DATA) & ~FLASH_READ_TIMING_MASK) |
+                            (timing & FLASH_READ_TIMING_MASK);
+    return execute_command(FLASH_SET_READ_MODE);
 }
 
 bool lpc_flash_read_page(uint32_t address, void *page) {
