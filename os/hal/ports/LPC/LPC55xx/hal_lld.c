@@ -57,7 +57,9 @@ void lpc55_reset_interrupt_state(void) {
 void hal_lld_init(void) {
     nvicInit();
     LPC55_AHBCLKCTRLSET(2) = ANALOG_CTRL_GATE;
-    LPC55_PRESETCTRLCLR(2) = ANALOG_CTRL_GATE;
+    if (!lpc55_release_reset(2, ANALOG_CTRL_GATE)) {
+        __builtin_trap();
+    }
     LPC55_PMC_PDRUNCFGCLR0 = FRO192M_POWER_DOWN;
     FRO192M_CTRL |= FRO12_ENABLE | FRO96_ENABLE;
 

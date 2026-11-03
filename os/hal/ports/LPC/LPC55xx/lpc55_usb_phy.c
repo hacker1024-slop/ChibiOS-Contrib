@@ -47,8 +47,9 @@ void lpc55_usb_phy_init(void) {
     CLOCK_CTRL |= CLKIN_ENABLE;
     XO32M_CTRL |= XO32M_USB_OUTPUT_ENABLE;
     LPC55_AHBCLKCTRLSET(2) = USB1_CLOCKS;
-    LPC55_PRESETCTRLSET(2) = USB1_CLOCKS;
-    LPC55_PRESETCTRLCLR(2) = USB1_CLOCKS;
+    if (!lpc55_pulse_reset(2, USB1_CLOCKS)) {
+        osalSysHalt("USB1 peripheral reset timeout");
+    }
 
     /* Allow the analog supplies to settle before releasing PHY soft reset. */
     for (unsigned n = 0; n < PHY_POWER_SETTLE_NOPS; ++n) {
