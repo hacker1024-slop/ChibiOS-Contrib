@@ -20,7 +20,7 @@ typedef enum {
     NonMaskableInt_IRQn = -14, HardFault_IRQn = -13,
     MemoryManagement_IRQn = -12, BusFault_IRQn = -11, UsageFault_IRQn = -10,
     SVCall_IRQn = -5, DebugMonitor_IRQn = -4, PendSV_IRQn = -2, SysTick_IRQn = -1,
-    USB1_IRQn = 47
+    CTIMER2_IRQn = 36, USB1_IRQn = 47
 } IRQn_Type;
 #include "core_cm33.h"
 #endif
