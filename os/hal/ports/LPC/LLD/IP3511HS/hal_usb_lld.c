@@ -141,13 +141,13 @@ void usb_lld_start(USBDriver *usbp) {
         usb_lld_reset(usbp);
         ip3511_hs_update_device(IP3511_HS_DEVICE_ENABLE, IP3511_HS_DEVICE_ENABLE,
                                 IP3511_HS_CHANGE_FLAGS);
-        nvicEnableVector(47, LPC55_USB_IRQ_PRIORITY);
+        nvicEnableVector(USB1_IRQn, LPC55_USB_IRQ_PRIORITY);
     }
 }
 
 void usb_lld_stop(USBDriver *usbp) {
     (void)usbp;
-    nvicDisableVector(47);
+    nvicDisableVector(USB1_IRQn);
     IP3511_HS->interrupt_enable = 0;
     ip3511_hs_update_device(IP3511_HS_DEVICE_ENABLE | IP3511_HS_CONNECT, 0,
                             IP3511_HS_CHANGE_FLAGS);

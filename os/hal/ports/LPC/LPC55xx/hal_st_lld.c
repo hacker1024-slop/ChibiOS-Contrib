@@ -8,7 +8,7 @@
 #endif
 
 _Static_assert(LPC55_CORE_CLOCK % OSAL_ST_FREQUENCY == 0, "nonintegral system tick");
-_Static_assert(LPC55_CORE_CLOCK / OSAL_ST_FREQUENCY <= (1u << 24), "SysTick reload overflow");
+_Static_assert(LPC55_CORE_CLOCK / OSAL_ST_FREQUENCY - 1u <= SysTick_LOAD_RELOAD_Msk, "SysTick reload overflow");
 
 OSAL_IRQ_HANDLER(SysTick_Handler) {
     OSAL_IRQ_PROLOGUE();
