@@ -20,6 +20,10 @@ typedef uint32_t ioeventmode_t;
 #define GPIOB 1u
 
 
+#define LPC55_PAL_ALTERNATE (1u << 16)
+#define PAL_MODE_ALTERNATE(function) (LPC55_PAL_ALTERNATE | ((function) & 15u))
+#define PAL_OUTPUT_TYPE_OPENDRAIN (1u << 9)
+
 #define PAL_NEW_INIT
 #define pal_lld_init() ((void)0)
 #define pal_lld_readport(port) LPC_REG(0x4008e100u + 4u * (port))
@@ -31,7 +35,10 @@ typedef uint32_t ioeventmode_t;
 #define pal_lld_setpadmode(port, pad, mode) lpc55_pal_mode(PAL_LINE(port, pad), mode)
 
 static inline void lpc55_pal_mode(ioline_t line, iomode_t mode) {
-    if (mode == PAL_MODE_OUTPUT_PUSHPULL || mode == PAL_MODE_OUTPUT_OPENDRAIN) {
+    if (mode & LPC55_PAL_ALTERNATE) {
+        lpc_gpio_input(line, 0);
+        LPC_REG(0x40001000u + 4u * line) = (1u << 8) | (mode & (15u | PAL_OUTPUT_TYPE_OPENDRAIN));
+    } else if (mode == PAL_MODE_OUTPUT_PUSHPULL || mode == PAL_MODE_OUTPUT_OPENDRAIN) {
         lpc_gpio_output(line);
         if (mode == PAL_MODE_OUTPUT_OPENDRAIN) {
             LPC_REG(0x40001000u + 4u * line) |= 1u << 9;
