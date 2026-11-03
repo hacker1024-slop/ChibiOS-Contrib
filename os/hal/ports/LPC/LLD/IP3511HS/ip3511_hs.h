@@ -53,3 +53,18 @@ static inline bool ip3511_hs_buffer_command(uintptr_t address, uint16_t length,
 static inline uint16_t ip3511_hs_remaining(uint32_t command) {
     return (command >> 11) & 0x7fffu;
 }
+
+#define IP3511_HS_ADDRESS_MASK UINT32_C(0x7f)
+#define IP3511_HS_DEVICE_ENABLE (UINT32_C(1) << 7)
+#define IP3511_HS_SETUP_RECEIVED (UINT32_C(1) << 8)
+#define IP3511_HS_CONNECT (UINT32_C(1) << 16)
+#define IP3511_HS_SUSPENDED (UINT32_C(1) << 17)
+#define IP3511_HS_CONNECT_CHANGE (UINT32_C(1) << 24)
+#define IP3511_HS_SUSPEND_CHANGE (UINT32_C(1) << 25)
+#define IP3511_HS_RESET_CHANGE (UINT32_C(1) << 26)
+#define IP3511_HS_CHANGE_FLAGS (IP3511_HS_SETUP_RECEIVED | IP3511_HS_CONNECT_CHANGE | \
+                                IP3511_HS_SUSPEND_CHANGE | IP3511_HS_RESET_CHANGE)
+
+/* Setup DMA always uses the second buffer descriptor for control OUT. */
+bool ip3511_hs_reset_endpoints(ip3511_hs_endpoint_list_t *list, uintptr_t setup);
+void ip3511_hs_update_device(uint32_t mask, uint32_t value, uint32_t acknowledge);
